@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Webauthn Example</title>
+        <script>
+            function encode(json) {
+                const enc = new TextEncoder();
+                json.challenge = enc.encode(json.challenge);
+                json.user.id = enc.encode(json.user.id);
+                return json;
+            }
+
+            async function fetchRegistrationOptions(userName) {
+                return await fetch(`/registration?userName=${userName}`)
+                    .then(response => response.json()).then(encode);
+            }
+
+            async function register() {
+                const publicKeyCredentialCreationOptions = await fetchRegistrationOptions(userName());
+                console.log("Cred opts", publicKeyCredentialCreationOptions);
+
+                const credential = await navigator.credentials.create({
+                    publicKey: publicKeyCredentialCreationOptions
+                });
+
+                console.log("Created Creds", credential);
+
+                const response = await fetch(`/register`, {
+                    method: 'POST',
+                    headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(credential)
+                });
+            }
+
+            function login() {
+                console.log("logging in");
+            }
+
+            function userName() {
+                return document.getElementById("username").value;
+            }
+        </script>
+    </head>
+    <body>
+        <form action="register" action="POST">
+            <label>Username</label>
+            <input id="username" value="test@here.com"/>
+            <input type="button" value="register" onclick="javasript:register()">
+        </form>
+        <form action="login" action="POST">
+            <input type="submit">Login</submit>
+        </form>
+    </body>
+</html>
